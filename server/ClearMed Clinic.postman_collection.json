@@ -1,0 +1,340 @@
+{
+  "info": {
+    "_postman_id": "9a002656-8cb5-435f-953e-2e521d85c081",
+    "name": "ClearMed Clinic",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49207772",
+    "_collection_link": "https://go.postman.co/collection/49207772-9a002656-8cb5-435f-953e-2e521d85c081?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Doctors",
+      "item": [
+        {
+          "name": "Create Doctor",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Alexander Wright\",\n    \"specialty\": \"Pediatrics\",\n    \"email\" : \"a.wright@clearmed.com\",\n    \"available\": \"true\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/doctors",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "doctors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "All Doctors",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Alexander Wright\",\n    \"specialty\": \"Pediatrics\",\n    \"email\" : \"a.wright@clearmed.com\",\n    \"available\": \"true\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/doctors",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "doctors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": " Doctors By ID",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Alexander Wright\",\n    \"specialty\": \"Pediatrics\",\n    \"email\" : \"a.wright@clearmed.com\",\n    \"available\": \"true\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/doctors/6a06500d8d5466e434d9fb4e",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "doctors",
+                "6a06500d8d5466e434d9fb4e"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Doctor",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Alexander Wright\",\n    \"specialty\": \"Pediatrics\",\n    \"email\" : \"a.wright@clearmed.com\",\n    \"available\": \"true\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/doctors/6a06500d8d5466e434d9fb4e",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "doctors",
+                "6a06500d8d5466e434d9fb4e"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Doctor",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Alexander Wright\",\n    \"specialty\": \"Pediatrics\",\n    \"email\" : \"a.wright@clearmed.com\",\n    \"available\": \"true\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/doctors/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "doctors",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "All Patients",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Alexander Wright\",\n    \"specialty\": \"Pediatrics\",\n    \"email\" : \"a.wright@clearmed.com\",\n    \"available\": \"true\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/patients",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "patients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create New Patient",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"doctor_id\": \"6a06500d8d5466e434d9fb4e\",\n    \"name\": \"Marissa Stone\",\n    \"dob\": \"2016-10-14T00:00:00.000Z\",\n    \"gender\": \"female\",\n    \"new_Patient\": \"true\",\n    \"insurance\": \"true\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/patients",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "patients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Patient By ID",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Marissa Stone\",\n    \"pcp\": \"6a06500d8d5466e434d9fb4e\",\n    \"dob\": \"2006-10-14\",\n    \"gender\": \"female\",\n    \"new_Patient\": \"true\",\n    \"insurance\": \"true\"\n\n    \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/patients/6a06525a8d5466e434d9fb4f",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "patients",
+                "6a06525a8d5466e434d9fb4f"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Marissa Stone\",\n    \"pcp\": \"6a06500d8d5466e434d9fb4e\",\n    \"dob\": \"2006-10-14\",\n    \"gender\": \"female\",\n    \"new_Patient\": \"true\",\n    \"insurance\": \"true\"\n\n    \n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/patients/6a06525a8d5466e434d9fb4f",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "patients",
+                "6a06525a8d5466e434d9fb4f"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Patient",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\" : \"Marissa Stone\",\n    \"pcp\": \"6a06500d8d5466e434d9fb4e\",\n    \"dob\": \"2006-10-14\",\n    \"gender\": \"female\",\n    \"new_Patient\": \"true\",\n    \"insurance\": \"true\"\n\n    \n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/ClearMed/v1/patients/6a06525a8d5466e434d9fb4f",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3002",
+              "path": [
+                "ClearMed",
+                "v1",
+                "patients",
+                "6a06525a8d5466e434d9fb4f"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "doctorId",
+      "value": ""
+    }
+  ]
+}
