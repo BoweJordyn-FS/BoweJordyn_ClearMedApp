@@ -1,7 +1,7 @@
 import api from '.';
 
 export const getAllPatients = () =>
-	api.get('/patients').then((res) => res.data);
+	api.get('/patients').then((res) => res.data.data);
 export const createPatient = (data) =>
 	api.post('/patients', data).then((res) => res.data);
 export const getPatientById = (id) =>

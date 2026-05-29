@@ -1,10 +1,11 @@
-import { Button, Group, Select, Table } from '@mantine/core';
-import Navigation from '../components/Navigation';
 import AllPatients from '../components/AllPatients';
+import Panels from '../components/Panels';
+
 export default function Dashboard() {
 	return (
 		<div>
 			<section id="stats"></section>
+			<Panels />
 			<AllPatients />
 		</div>
 	);

@@ -3,3 +3,6 @@
 	padding: 0;
 	box-sizing: border-box;
 } */
+.mantine-Table-thead {
+	text-align: right;
+}

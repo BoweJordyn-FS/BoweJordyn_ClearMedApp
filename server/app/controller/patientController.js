@@ -6,7 +6,7 @@ const Messages = require('../messages/messages');
 const getAllPatients = async (req, res) => {
 	try {
 		// Normalize bracket notation: 'dob[gte]' → { dob: { gte: ... } }
-		const excluded = ['page', 'limit', 'sort', 'select', 'order'];
+		const excluded = ['sort', 'select', 'order'];
 		const queryObj = Object.entries(req.query).reduce((acc, [key, value]) => {
 			if (excluded.includes(key)) return acc;
 			const match = key.match(/^(\w+)\[(\w+)\]$/);
@@ -55,22 +55,12 @@ const getAllPatients = async (req, res) => {
 			query = query.sort('dob');
 		}
 
-		// Pagination: ?page=1&limit=10
-		const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
-		const limit = Math.min(parseInt(req.query.limit, 10) || 10, 100);
-		const skip = (page - 1) * limit;
-		query = query.skip(skip).limit(limit);
-
 		const patients = await query;
-		res
-			.status(200)
-			.json({
-				success: true,
-				count: patients.length,
-				page,
-				limit,
-				data: patients,
-			});
+		res.status(200).json({
+			success: true,
+			count: patients.length,
+			data: patients,
+		});
 	} catch (error) {
 		res.status(500).json({ success: false, message: Messages.SERVER_ERROR });
 	}

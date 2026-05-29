@@ -1,3 +1,9 @@
+import AllPatients from '../components/AllPatients';
+
 export default function Patients() {
-	return <div>Patients</div>;
+	return (
+		<div>
+			<AllPatients />
+		</div>
+	);
 }

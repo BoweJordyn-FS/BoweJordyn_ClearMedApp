@@ -1,7 +1,7 @@
 import api from '.';
 
 export const getAllDoctors = () =>
-	api.get('/doctors').then((res) => res.data);
+	api.get('/doctors').then((res) => res.data.data);
 export const createDoctor = (data) =>
 	api.post('/doctors', data).then((res) => res.data);
 export const getDoctorById = (id) =>
