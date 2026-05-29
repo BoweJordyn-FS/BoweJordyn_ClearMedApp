@@ -1,8 +1,8 @@
+import React, { useState } from 'react';
 import {
 	Group,
 	Button,
 	Table,
-	Badge,
 	Modal,
 	TextInput,
 	Switch,
@@ -10,8 +10,9 @@ import {
 	ActionIcon,
 } from '@mantine/core';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
 import { getAllDoctors, createDoctor, deleteDoctor } from '../api/doctors';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
+import { AvailabilityBadge, PatientTypeBadge } from './badges';
 
 const defaultForm = {
 	name: '',
@@ -65,11 +66,7 @@ export default function AllDoctors() {
 
 	return (
 		<>
-			<Modal
-				opened={opened}
-				onClose={() => setOpened(false)}
-				title="Add Doctor"
-			>
+			<Modal opened={opened} onClose={() => setOpened(false)} title="Add Doctor">
 				<form onSubmit={handleSubmit}>
 					<TextInput
 						label="Name"
@@ -96,69 +93,33 @@ export default function AllDoctors() {
 					<Switch
 						label="Available"
 						checked={form.available}
-						onChange={(e) =>
-							setForm({ ...form, available: e.currentTarget.checked })
-						}
+						onChange={(e) => setForm({ ...form, available: e.currentTarget.checked })}
 						mb="md"
 					/>
-					<Button
-						type="submit"
-						color="teal"
-						fullWidth
-						loading={createMutation.isPending}
-					>
+					<Button type="submit" color="teal" fullWidth loading={createMutation.isPending}>
 						Add Doctor
 					</Button>
 				</form>
 			</Modal>
 
-			<Modal
-				opened={!!confirmDoctor}
+			<ConfirmDeleteModal
+				item={confirmDoctor}
+				entityName="Doctor"
 				onClose={() => setConfirmDoctor(null)}
-				title="Remove Doctor"
-				size="sm"
-			>
-				<Text
-					size="sm"
-					mb="lg"
-				>
-					Are you sure you want to remove <strong>{confirmDoctor?.name}</strong>
-					? This cannot be undone.
-				</Text>
-				<Group justify="flex-end">
-					<Button
-						variant="default"
-						onClick={() => setConfirmDoctor(null)}
-					>
-						Cancel
-					</Button>
-					<Button
-						color="red"
-						loading={deleteMutation.isPending}
-						onClick={() => deleteMutation.mutate(confirmDoctor._id)}
-					>
-						Remove
-					</Button>
-				</Group>
-			</Modal>
+				onConfirm={() => deleteMutation.mutate(confirmDoctor._id)}
+				isPending={deleteMutation.isPending}
+			/>
 
 			<section className="border-stone-200 shadow-md shadow-stone-200/20 rounded-md p-3 mb-5 bg-white">
 				<header className="flex flex-row items-center justify-between mb-4 mx-2">
 					<h4>All Doctors</h4>
 					<Group>
-						<Button
-							variant="filled"
-							color="teal"
-							onClick={() => setOpened(true)}
-						>
+						<Button variant="filled" color="teal" onClick={() => setOpened(true)}>
 							+ Add Doctor
 						</Button>
 					</Group>
 				</header>
-				<Table
-					highlightOnHover
-					verticalSpacing="md"
-				>
+				<Table highlightOnHover verticalSpacing="md">
 					<Table.Thead>
 						<Table.Tr>
 							<Table.Th>Name</Table.Th>
@@ -170,36 +131,18 @@ export default function AllDoctors() {
 					</Table.Thead>
 					<Table.Tbody>
 						{rows.map((dr) => (
-							<>
+							<React.Fragment key={dr._id}>
 								<Table.Tr
-									key={dr._id}
-									onClick={() =>
-										setExpandedId(expandedId === dr._id ? null : dr._id)
-									}
+									onClick={() => setExpandedId(expandedId === dr._id ? null : dr._id)}
 									className="text-left cursor-pointer"
 								>
 									<Table.Td>{dr.name}</Table.Td>
 									<Table.Td>{dr.email}</Table.Td>
 									<Table.Td>{dr.specialty}</Table.Td>
 									<Table.Td>
-										{dr.available ? (
-											<Badge
-												color="green"
-												variant="light"
-												size="xs"
-											>
-												Available
-											</Badge>
-										) : (
-											<Badge
-												color="red"
-												variant="light"
-												size="xs"
-											>
-												Not Available
-											</Badge>
-										)}
+										<AvailabilityBadge available={dr.available} />
 									</Table.Td>
+									{/* stopPropagation so clicking ✕ doesn't also toggle the expand */}
 									<Table.Td>
 										<ActionIcon
 											color="red"
@@ -215,11 +158,8 @@ export default function AllDoctors() {
 								</Table.Tr>
 
 								{expandedId === dr._id && (
-									<Table.Tr key={`${dr._id}-patients`}>
-										<Table.Td
-											colSpan={5}
-											style={{ background: '#f9fafb' }}
-										>
+									<Table.Tr>
+										<Table.Td colSpan={5} style={{ background: '#f9fafb' }}>
 											{dr.patients?.length ? (
 												<Table verticalSpacing="xs">
 													<Table.Thead>
@@ -229,47 +169,27 @@ export default function AllDoctors() {
 															<Table.Th>New Patient</Table.Th>
 														</Table.Tr>
 													</Table.Thead>
-													<Table.Tbody className="text-left">
+													<Table.Tbody>
 														{dr.patients.map((p) => (
 															<Table.Tr key={p._id}>
 																<Table.Td>{p.name}</Table.Td>
 																<Table.Td>{p.dob}</Table.Td>
 																<Table.Td>
-																	{p.new_Patient ? (
-																		<Badge
-																			color="blue"
-																			variant="light"
-																			size="xs"
-																		>
-																			New
-																		</Badge>
-																	) : (
-																		<Badge
-																			color="gray"
-																			variant="light"
-																			size="xs"
-																		>
-																			Return
-																		</Badge>
-																	)}
+																	<PatientTypeBadge isNew={p.new_Patient} />
 																</Table.Td>
 															</Table.Tr>
 														))}
 													</Table.Tbody>
 												</Table>
 											) : (
-												<Text
-													size="sm"
-													c="dimmed"
-													p="xs"
-												>
+												<Text size="sm" c="dimmed" p="xs">
 													No patients assigned.
 												</Text>
 											)}
 										</Table.Td>
 									</Table.Tr>
 								)}
-							</>
+							</React.Fragment>
 						))}
 					</Table.Tbody>
 				</Table>

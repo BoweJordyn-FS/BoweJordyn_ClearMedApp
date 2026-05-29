@@ -10,18 +10,9 @@ function App() {
 		<div className="App bg-[#FAFAF9]">
 			<Navigation>
 				<Routes>
-					<Route
-						path="/"
-						element={<Dashboard />}
-					/>
-					<Route
-						path="/doctors"
-						element={<Doctors />}
-					/>
-					<Route
-						path="/patients"
-						element={<Patients />}
-					/>
+					<Route path="/" element={<Dashboard />} />
+					<Route path="/doctors" element={<Doctors />} />
+					<Route path="/patients" element={<Patients />} />
 				</Routes>
 			</Navigation>
 		</div>

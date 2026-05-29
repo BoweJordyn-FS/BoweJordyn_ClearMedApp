@@ -2,7 +2,6 @@ import {
 	Button,
 	Group,
 	Table,
-	Badge,
 	Modal,
 	TextInput,
 	Select,
@@ -14,6 +13,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAllPatients, createPatient, deletePatient } from '../api/patients';
 import { getAllDoctors } from '../api/doctors';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
+import { PatientTypeBadge, InsuranceBadge } from './badges';
 
 const defaultForm = {
 	name: '',
@@ -70,17 +71,17 @@ export default function AllPatients() {
 	if (isError) return <div>Failed to load patients.</div>;
 
 	const rows = Array.isArray(patients) ? patients : [];
+
+	// max 6 patients per doctor
 	const doctorOptions = Array.isArray(doctors)
-		? doctors.map((dr) => ({ value: dr._id, label: dr.name }))
+		? doctors
+				.filter((dr) => (dr.patients?.length ?? 0) < 6)
+				.map((dr) => ({ value: dr._id, label: dr.name }))
 		: [];
 
 	return (
 		<div>
-			<Modal
-				opened={opened}
-				onClose={() => setOpened(false)}
-				title="Add Patient"
-			>
+			<Modal opened={opened} onClose={() => setOpened(false)} title="Add Patient">
 				<form onSubmit={handleSubmit}>
 					<TextInput
 						label="Name"
@@ -116,59 +117,28 @@ export default function AllPatients() {
 					<Switch
 						label="New Patient"
 						checked={form.new_Patient}
-						onChange={(e) =>
-							setForm({ ...form, new_Patient: e.currentTarget.checked })
-						}
+						onChange={(e) => setForm({ ...form, new_Patient: e.currentTarget.checked })}
 						mb="sm"
 					/>
 					<Switch
 						label="Has Insurance"
 						checked={form.insurance}
-						onChange={(e) =>
-							setForm({ ...form, insurance: e.currentTarget.checked })
-						}
+						onChange={(e) => setForm({ ...form, insurance: e.currentTarget.checked })}
 						mb="md"
 					/>
-					<Button
-						type="submit"
-						color="teal"
-						fullWidth
-						loading={createMutation.isPending}
-					>
+					<Button type="submit" color="teal" fullWidth loading={createMutation.isPending}>
 						Add Patient
 					</Button>
 				</form>
 			</Modal>
 
-			<Modal
-				opened={!!confirmPatient}
+			<ConfirmDeleteModal
+				item={confirmPatient}
+				entityName="Patient"
 				onClose={() => setConfirmPatient(null)}
-				title="Remove Patient"
-				size="sm"
-			>
-				<Text
-					size="sm"
-					mb="lg"
-				>
-					Are you sure you want to remove{' '}
-					<strong>{confirmPatient?.name}</strong>? This cannot be undone.
-				</Text>
-				<Group justify="flex-end">
-					<Button
-						variant="default"
-						onClick={() => setConfirmPatient(null)}
-					>
-						Cancel
-					</Button>
-					<Button
-						color="red"
-						loading={deleteMutation.isPending}
-						onClick={() => deleteMutation.mutate(confirmPatient._id)}
-					>
-						Remove
-					</Button>
-				</Group>
-			</Modal>
+				onConfirm={() => deleteMutation.mutate(confirmPatient._id)}
+				isPending={deleteMutation.isPending}
+			/>
 
 			<section
 				id="all-patients"
@@ -177,19 +147,12 @@ export default function AllPatients() {
 				<header className="flex flex-row items-center justify-between mb-4 mx-2">
 					<h4>All Patients</h4>
 					<Group>
-						<Button
-							variant="filled"
-							color="teal"
-							onClick={() => setOpened(true)}
-						>
+						<Button variant="filled" color="teal" onClick={() => setOpened(true)}>
 							+ Add Patient
 						</Button>
 					</Group>
 				</header>
-				<Table
-					highlightOnHover
-					verticalSpacing="md"
-				>
+				<Table highlightOnHover verticalSpacing="md">
 					<Table.Thead>
 						<Table.Tr>
 							<Table.Th>Name</Table.Th>
@@ -208,42 +171,10 @@ export default function AllPatients() {
 								<Table.Td className="text-xs">{patient.dob}</Table.Td>
 								<Table.Td>{patient.gender}</Table.Td>
 								<Table.Td>
-									{patient.new_Patient ? (
-										<Badge
-											color="blue"
-											variant="light"
-											size="xs"
-										>
-											New
-										</Badge>
-									) : (
-										<Badge
-											color="gray"
-											variant="light"
-											size="xs"
-										>
-											Return
-										</Badge>
-									)}
+									<PatientTypeBadge isNew={patient.new_Patient} />
 								</Table.Td>
 								<Table.Td>
-									{patient.insurance ? (
-										<Badge
-											color="green"
-											variant="light"
-											size="xs"
-										>
-											Insured
-										</Badge>
-									) : (
-										<Badge
-											color="yellow"
-											variant="light"
-											size="xs"
-										>
-											Not Insured
-										</Badge>
-									)}
+									<InsuranceBadge hasInsurance={patient.insurance} />
 								</Table.Td>
 								<Table.Td>{patient.doctor_id?.name ?? '—'}</Table.Td>
 								<Table.Td>
