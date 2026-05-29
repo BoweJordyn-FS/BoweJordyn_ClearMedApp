@@ -98,7 +98,9 @@ export default function Panels() {
 								<div className="text-[13px] font-medium truncate">
 									{patient.name}
 								</div>
-								<div className="text-[11px] text-stone-400">{patient.dob}</div>
+								<div className="text-[11px] text-stone-400">
+									{patient.dob} | {patient.doctor_id?.name}
+								</div>
 							</div>
 							<span>
 								{patient.new_Patient ? (

@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Hospital } from 'iconsax-react';
+import { MdOutlineDashboard } from 'react-icons/md';
+import { FaUserDoctor } from 'react-icons/fa6';
+import { BsFileEarmarkPerson } from 'react-icons/bs';
 import { Group } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -12,11 +15,11 @@ const routeNames = {
 export default function Navigation({ children, onSubmit }) {
 	const { pathname } = useLocation();
 	const pageName = routeNames[pathname] ?? pathname;
-    const [term, setTerm] = useState('');
+	const [term, setTerm] = useState('');
 
-    const handleChange=(event)=>{
-        setTerm(event.target.value)
-    }
+	const handleChange = (event) => {
+		setTerm(event.target.value);
+	};
 	return (
 		<div className="flex h-screen">
 			<aside className="w-52 bg-white border-r border-stone-100 flex flex-col shrink-0">
@@ -35,19 +38,35 @@ export default function Navigation({ children, onSubmit }) {
 					</div>
 				</div>
 
-				<nav className="px-2.5 py-3 text-left gap-2">
-					<div className="text-sm font-bold text-stone-300 uppercase tracking-widest mb-1">
+				<nav className="py-3 text-left gap-2">
+					<div className="text-sm font-bold text-stone-300 uppercase tracking-widest mb-1 px-2.5 ">
 						Main
 					</div>
 					<ul className="py-1">
-						<li className="py-1">
-							<Link to="/">Dashboard</Link>
+						<li className="hover:bg-emerald-100 p-1">
+							<Link
+								to="/"
+								className="py-2 display flex flex-row items-center gap-1 mx-1"
+							>
+								<MdOutlineDashboard />
+								Dashboard
+							</Link>
 						</li>
-						<li className="py-1">
-							<Link to="/doctors">Doctors</Link>
+						<li className="hover:bg-emerald-100 p-1">
+							<Link
+								to="/doctors"
+								className="py-2 display flex flex-row items-center gap-1 mx-1"
+							>
+								<FaUserDoctor /> Doctors
+							</Link>
 						</li>
-						<li className="py-1">
-							<Link to="/patients">Patients</Link>
+						<li className="hover:bg-emerald-100 p-1">
+							<Link
+								to="/patients"
+								className="py-2 display flex flex-row items-center gap-1 mx-1"
+							>
+								<BsFileEarmarkPerson /> Patients
+							</Link>
 						</li>
 					</ul>
 				</nav>
@@ -63,9 +82,9 @@ export default function Navigation({ children, onSubmit }) {
 							<input
 								type="search"
 								placeholder="Search..."
-                                value={term}
+								value={term}
 								className="border rounded-md w-md py-1 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                onChange={handleChange}
+								onChange={handleChange}
 							/>
 						</form>
 					</div>

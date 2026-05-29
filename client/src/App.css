@@ -6,3 +6,7 @@
 .mantine-Table-thead {
 	text-align: right;
 }
+
+body {
+	font-family: 'Open Sans', sans-serif;
+}
