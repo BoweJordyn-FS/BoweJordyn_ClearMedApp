@@ -15,6 +15,7 @@ import { getAllPatients, createPatient, deletePatient } from '../api/patients';
 import { getAllDoctors } from '../api/doctors';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { PatientTypeBadge, InsuranceBadge } from './badges';
+import { useSearch } from '../context/SearchContext';
 
 const defaultForm = {
 	name: '',
@@ -30,6 +31,7 @@ export default function AllPatients() {
 	const [form, setForm] = useState(defaultForm);
 	const [confirmPatient, setConfirmPatient] = useState(null);
 	const queryClient = useQueryClient();
+	const searchTerm = useSearch();
 
 	const {
 		data: patients,
@@ -70,7 +72,17 @@ export default function AllPatients() {
 	if (isLoading) return <div>Loading patients...</div>;
 	if (isError) return <div>Failed to load patients.</div>;
 
-	const rows = Array.isArray(patients) ? patients : [];
+	const allPatients = Array.isArray(patients) ? patients : [];
+	const lower = searchTerm.toLowerCase();
+	const rows = lower
+		? allPatients.filter(
+				(p) =>
+					p.name?.toLowerCase().includes(lower) ||
+					p.gender?.toLowerCase().includes(lower) ||
+					p.dob?.toLowerCase().includes(lower) ||
+					p.doctor_id?.name?.toLowerCase().includes(lower)
+			)
+		: allPatients;
 
 	// max 6 patients per doctor
 	const doctorOptions = Array.isArray(doctors)

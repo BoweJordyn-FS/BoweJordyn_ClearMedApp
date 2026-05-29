@@ -5,6 +5,7 @@ import { FaUserDoctor } from 'react-icons/fa6';
 import { BsFileEarmarkPerson } from 'react-icons/bs';
 import { Group } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
+import { SearchContext } from '../context/SearchContext';
 
 const routeNames = {
 	'/': 'Dashboard',
@@ -74,8 +75,8 @@ export default function Navigation({ children, onSubmit }) {
 
 			<div className="flex flex-col flex-1">
 				<header className="flex flex-row justify-between px-5 py-4 border-b border-stone-100 items-center shrink-0 bg-white h-20.5">
-					<div className="pl-2 pt-2">
-						<h2>{pageName}</h2>
+					<div className="pl-2 pt-2 text-3xl font-bold">
+						<span>{pageName}</span>
 					</div>
 					<div>
 						<form onSubmit={onSubmit}>
@@ -83,7 +84,7 @@ export default function Navigation({ children, onSubmit }) {
 								type="search"
 								placeholder="Search..."
 								value={term}
-								className="border rounded-md w-md py-1 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+								className="border rounded-md w-md py-1 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mx-2"
 								onChange={handleChange}
 							/>
 						</form>
@@ -93,7 +94,11 @@ export default function Navigation({ children, onSubmit }) {
 					</div>
 				</header>
 
-				<main className="flex-1 overflow-auto p-5">{children}</main>
+				<main className="flex-1 overflow-auto p-5">
+					<SearchContext.Provider value={term}>
+						{children}
+					</SearchContext.Provider>
+				</main>
 			</div>
 		</div>
 	);

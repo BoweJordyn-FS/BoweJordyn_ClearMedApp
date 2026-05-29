@@ -13,6 +13,7 @@ import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { getAllDoctors, createDoctor, deleteDoctor } from '../api/doctors';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { AvailabilityBadge, PatientTypeBadge } from './badges';
+import { useSearch } from '../context/SearchContext';
 
 const defaultForm = {
 	name: '',
@@ -27,6 +28,7 @@ export default function AllDoctors() {
 	const [confirmDoctor, setConfirmDoctor] = useState(null);
 	const [expandedId, setExpandedId] = useState(null);
 	const queryClient = useQueryClient();
+	const searchTerm = useSearch();
 
 	const {
 		data: doctors,
@@ -62,7 +64,16 @@ export default function AllDoctors() {
 	if (isLoading) return <div>Loading doctors...</div>;
 	if (isError) return <div>Failed to load doctors.</div>;
 
-	const rows = Array.isArray(doctors) ? doctors : [];
+	const allDoctors = Array.isArray(doctors) ? doctors : [];
+	const lower = searchTerm.toLowerCase();
+	const rows = lower
+		? allDoctors.filter(
+				(dr) =>
+					dr.name?.toLowerCase().includes(lower) ||
+					dr.email?.toLowerCase().includes(lower) ||
+					dr.specialty?.toLowerCase().includes(lower)
+			)
+		: allDoctors;
 
 	return (
 		<>
