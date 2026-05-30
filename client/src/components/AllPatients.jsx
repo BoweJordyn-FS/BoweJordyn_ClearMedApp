@@ -157,7 +157,7 @@ export default function AllPatients() {
 				className="border-stone-200 shadow-md shadow-stone-200/20 rounded-md p-3 mb-5 bg-white"
 			>
 				<header className="flex flex-row items-center justify-between mb-4 mx-2">
-					<h4>All Patients</h4>
+					<h4>All Patients <span className="text-sm font-normal text-stone-400">({allPatients.length})</span></h4>
 					<Group>
 						<Button variant="filled" color="teal" onClick={() => setOpened(true)}>
 							+ Add Patient
