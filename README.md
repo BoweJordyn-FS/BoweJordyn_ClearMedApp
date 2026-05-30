@@ -14,8 +14,6 @@ A full-stack clinic management app for tracking doctors and patients. The dashbo
 
 ---
 
-## Tech Stack
-
 ### Client
 
 | Library                          | Purpose                                                                                                                                    |
