@@ -9,10 +9,17 @@ import {
 	Text,
 	ActionIcon,
 } from '@mantine/core';
-import { getAllDoctors, createDoctor, deleteDoctor } from '../api/doctors';
+import {
+	getAllDoctors,
+	createDoctor,
+	updateDoctor,
+	deleteDoctor,
+} from '../api/doctors';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { AvailabilityBadge, PatientTypeBadge } from './badges';
 import { useSearch } from '../context/SearchContext';
+import { FaRegEdit } from 'react-icons/fa';
+import { TiDeleteOutline } from 'react-icons/ti';
 
 const defaultForm = {
 	name: '',
@@ -24,6 +31,8 @@ const defaultForm = {
 export default function AllDoctors() {
 	const [opened, setOpened] = useState(false);
 	const [form, setForm] = useState(defaultForm);
+	const [editTarget, setEditTarget] = useState(null);
+	const [editForm, setEditForm] = useState(defaultForm);
 	const [confirmDoctor, setConfirmDoctor] = useState(null);
 	const [expandedId, setExpandedId] = useState(null);
 
@@ -31,6 +40,7 @@ export default function AllDoctors() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isError, setIsError] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isUpdating, setIsUpdating] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 
 	const searchTerm = useSearch();
@@ -69,6 +79,28 @@ export default function AllDoctors() {
 		}
 	};
 
+	const openEdit = (dr) => {
+		setEditTarget(dr);
+		setEditForm({
+			name: dr.name,
+			specialty: dr.specialty,
+			email: dr.email,
+			available: dr.available,
+		});
+	};
+
+	const handleUpdate = async (e) => {
+		e.preventDefault();
+		setIsUpdating(true);
+		try {
+			await updateDoctor(editTarget._id, editForm);
+			await refreshDoctors();
+			setEditTarget(null);
+		} finally {
+			setIsUpdating(false);
+		}
+	};
+
 	const handleDelete = async () => {
 		setIsDeleting(true);
 		try {
@@ -89,13 +121,18 @@ export default function AllDoctors() {
 				(dr) =>
 					dr.name?.toLowerCase().includes(lower) ||
 					dr.email?.toLowerCase().includes(lower) ||
-					dr.specialty?.toLowerCase().includes(lower)
+					dr.specialty?.toLowerCase().includes(lower),
 			)
 		: doctors;
 
 	return (
 		<>
-			<Modal opened={opened} onClose={() => setOpened(false)} title="Add Doctor">
+			{/* Add Doctor modal */}
+			<Modal
+				opened={opened}
+				onClose={() => setOpened(false)}
+				title="Add Doctor"
+			>
 				<form onSubmit={handleSubmit}>
 					<TextInput
 						label="Name"
@@ -122,11 +159,70 @@ export default function AllDoctors() {
 					<Switch
 						label="Available"
 						checked={form.available}
-						onChange={(e) => setForm({ ...form, available: e.currentTarget.checked })}
+						onChange={(e) =>
+							setForm({ ...form, available: e.currentTarget.checked })
+						}
 						mb="md"
 					/>
-					<Button type="submit" color="teal" fullWidth loading={isSubmitting}>
+					<Button
+						type="submit"
+						color="teal"
+						fullWidth
+						loading={isSubmitting}
+					>
 						Add Doctor
+					</Button>
+				</form>
+			</Modal>
+
+			{/* Edit Doctor modal */}
+			<Modal
+				opened={!!editTarget}
+				onClose={() => setEditTarget(null)}
+				title="Edit Doctor"
+			>
+				<form onSubmit={handleUpdate}>
+					<TextInput
+						label="Name"
+						required
+						value={editForm.name}
+						onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+						mb="sm"
+					/>
+					<TextInput
+						label="Email"
+						type="email"
+						required
+						value={editForm.email}
+						onChange={(e) =>
+							setEditForm({ ...editForm, email: e.target.value })
+						}
+						mb="sm"
+					/>
+					<TextInput
+						label="Specialty"
+						required
+						value={editForm.specialty}
+						onChange={(e) =>
+							setEditForm({ ...editForm, specialty: e.target.value })
+						}
+						mb="sm"
+					/>
+					<Switch
+						label="Available"
+						checked={editForm.available}
+						onChange={(e) =>
+							setEditForm({ ...editForm, available: e.currentTarget.checked })
+						}
+						mb="md"
+					/>
+					<Button
+						type="submit"
+						color="teal"
+						fullWidth
+						loading={isUpdating}
+					>
+						Save Changes
 					</Button>
 				</form>
 			</Modal>
@@ -148,12 +244,19 @@ export default function AllDoctors() {
 						</span>
 					</h4>
 					<Group>
-						<Button variant="filled" color="teal" onClick={() => setOpened(true)}>
+						<Button
+							variant="filled"
+							color="teal"
+							onClick={() => setOpened(true)}
+						>
 							+ Add Doctor
 						</Button>
 					</Group>
 				</header>
-				<Table highlightOnHover verticalSpacing="md">
+				<Table
+					highlightOnHover
+					verticalSpacing="md"
+				>
 					<Table.Thead>
 						<Table.Tr>
 							<Table.Th>Name</Table.Th>
@@ -167,7 +270,9 @@ export default function AllDoctors() {
 						{rows.map((dr) => (
 							<React.Fragment key={dr._id}>
 								<Table.Tr
-									onClick={() => setExpandedId(expandedId === dr._id ? null : dr._id)}
+									onClick={() =>
+										setExpandedId(expandedId === dr._id ? null : dr._id)
+									}
 									className="text-left cursor-pointer"
 								>
 									<Table.Td>{dr.name}</Table.Td>
@@ -176,24 +281,36 @@ export default function AllDoctors() {
 									<Table.Td>
 										<AvailabilityBadge available={dr.available} />
 									</Table.Td>
-									{/* stopPropagation so clicking ✕ doesn't also toggle the expand */}
+									{/* stopPropagation so clicking edit/delete doesn't also toggle the expand */}
 									<Table.Td>
-										<ActionIcon
-											color="red"
-											variant="subtle"
-											onClick={(e) => {
-												e.stopPropagation();
-												setConfirmDoctor(dr);
-											}}
+										<Group
+											gap="xs"
+											justify="flex-end"
 										>
-											✕
-										</ActionIcon>
+											<ActionIcon
+												color="black"
+												variant="subtle"
+												onClick={(e) => { e.stopPropagation(); openEdit(dr); }}
+											>
+												<FaRegEdit />
+											</ActionIcon>
+											<ActionIcon
+												color="red"
+												variant="subtle"
+												onClick={(e) => { e.stopPropagation(); setConfirmDoctor(dr); }}
+											>
+												<TiDeleteOutline size={24} />
+											</ActionIcon>
+										</Group>
 									</Table.Td>
 								</Table.Tr>
 
 								{expandedId === dr._id && (
-									<Table.Tr>
-										<Table.Td colSpan={5} style={{ background: '#f9fafb' }}>
+									<Table.Tr className="text-left">
+										<Table.Td
+											colSpan={5}
+											style={{ background: '#f9fafb' }}
+										>
 											{dr.patients?.length ? (
 												<Table verticalSpacing="xs">
 													<Table.Thead>
@@ -216,7 +333,11 @@ export default function AllDoctors() {
 													</Table.Tbody>
 												</Table>
 											) : (
-												<Text size="sm" c="dimmed" p="xs">
+												<Text
+													size="sm"
+													c="dimmed"
+													p="xs"
+												>
 													No patients assigned.
 												</Text>
 											)}

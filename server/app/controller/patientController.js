@@ -96,14 +96,30 @@ const getPatientById = async (req, res) => {
 };
 const updatePatient = async (req, res) => {
 	try {
-		const patient = await Patients.findByIdAndUpdate(req.params.id, req.body, {
-			returnDocument: 'after',
-		});
-		if (!patient) {
+		const existing = await Patients.findById(req.params.id);
+		if (!existing) {
 			return res
 				.status(404)
 				.json({ success: false, message: Messages.PATIENT_NOT_FOUND });
 		}
+
+		const newDoctorId = req.body.doctor_id;
+		const oldDoctorId = existing.doctor_id?.toString();
+
+		if (newDoctorId && newDoctorId !== oldDoctorId) {
+			if (oldDoctorId) {
+				await Doctors.findByIdAndUpdate(oldDoctorId, {
+					$pull: { patients: existing._id },
+				});
+			}
+			await Doctors.findByIdAndUpdate(newDoctorId, {
+				$addToSet: { patients: existing._id },
+			});
+		}
+
+		const patient = await Patients.findByIdAndUpdate(req.params.id, req.body, {
+			returnDocument: 'after',
+		});
 		res.status(200).json({ success: true, data: patient });
 	} catch (error) {
 		res.status(500).json({ success: false, message: Messages.SERVER_ERROR });

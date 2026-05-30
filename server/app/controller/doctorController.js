@@ -1,4 +1,5 @@
 const Doctors = require('../models/Doctors');
+const Patients = require('../models/Patients');
 const Messages = require('../messages/messages');
 
 //updated the getAllDoctors function to include an array of patients assigned to each doctor
@@ -33,16 +34,11 @@ const getAllDoctors = async (req, res) => {
 		});
 
 		console.log('parsedQuery →', JSON.stringify(parsedQuery, null, 2));
-		let query = Doctors.find(parsedQuery).populate({
-			path: 'patients',
-			select: 'name dob new_Patient',
-		});
+		let query = Doctors.find(parsedQuery);
 
 		// Select: ?select=name,specialty — comma-separated list of fields to return
-		// When including specific fields, __v is already excluded automatically by MongoDB.
-		// 'patients' is always appended so .populate() can resolve the ObjectId references.
 		const selectFields = req.query.select
-			? req.query.select.split(',').join(' ') + ' patients'
+			? req.query.select.split(',').join(' ')
 			: '-__v';
 		query = query.select(selectFields);
 
@@ -61,12 +57,28 @@ const getAllDoctors = async (req, res) => {
 		query = query.skip(skip).limit(limit);
 
 		const doctors = await query;
+
+		// Derive patients from the authoritative doctor_id field on Patient documents
+		const allPatients = await Patients.find(
+			{ doctor_id: { $in: doctors.map((d) => d._id) } },
+			'name dob new_Patient doctor_id',
+		);
+		const patientMap = allPatients.reduce((acc, p) => {
+			const key = p.doctor_id.toString();
+			(acc[key] = acc[key] || []).push(p);
+			return acc;
+		}, {});
+		const data = doctors.map((dr) => ({
+			...dr.toObject(),
+			patients: patientMap[dr._id.toString()] || [],
+		}));
+
 		res.status(200).json({
 			success: true,
-			count: doctors.length,
+			count: data.length,
 			page,
 			limit,
-			data: doctors,
+			data,
 		});
 	} catch (error) {
 		console.error('getAllDoctors error:', error);
@@ -88,18 +100,17 @@ const createDoctor = async (req, res) => {
 //updated the getDoctorById function to include an array of patients assigned to the doctor
 const getDoctorById = async (req, res) => {
 	try {
-		const doctor = await Doctors.findById(req.params.id)
-			.select('-__v')
-			.populate({
-				path: 'patients',
-				select: 'name dob new_Patient',
-			});
+		const doctor = await Doctors.findById(req.params.id).select('-__v');
 		if (!doctor) {
 			return res
 				.status(404)
 				.json({ success: false, message: Messages.DOCTOR_NOT_FOUND });
 		}
-		res.status(200).json({ success: true, data: doctor });
+		const patients = await Patients.find(
+			{ doctor_id: doctor._id },
+			'name dob new_Patient',
+		);
+		res.status(200).json({ success: true, data: { ...doctor.toObject(), patients } });
 	} catch (error) {
 		res.status(500).json({ success: false, message: Messages.SERVER_ERROR });
 	}

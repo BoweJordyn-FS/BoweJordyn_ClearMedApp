@@ -9,11 +9,18 @@ import {
 	ActionIcon,
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
-import { getAllPatients, createPatient, deletePatient } from '../api/patients';
+import {
+	getAllPatients,
+	createPatient,
+	updatePatient,
+	deletePatient,
+} from '../api/patients';
 import { getAllDoctors } from '../api/doctors';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { PatientTypeBadge, InsuranceBadge } from './badges';
 import { useSearch } from '../context/SearchContext';
+import { FaRegEdit } from 'react-icons/fa';
+import { TiDeleteOutline } from 'react-icons/ti';
 
 const defaultForm = {
 	name: '',
@@ -27,6 +34,8 @@ const defaultForm = {
 export default function AllPatients() {
 	const [opened, setOpened] = useState(false);
 	const [form, setForm] = useState(defaultForm);
+	const [editTarget, setEditTarget] = useState(null);
+	const [editForm, setEditForm] = useState(defaultForm);
 	const [confirmPatient, setConfirmPatient] = useState(null);
 
 	const [patients, setPatients] = useState([]);
@@ -34,6 +43,7 @@ export default function AllPatients() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isError, setIsError] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isUpdating, setIsUpdating] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 
 	const searchTerm = useSearch();
@@ -76,6 +86,30 @@ export default function AllPatients() {
 		}
 	};
 
+	const openEdit = (patient) => {
+		setEditTarget(patient);
+		setEditForm({
+			name: patient.name,
+			dob: patient.dob,
+			gender: patient.gender,
+			new_Patient: patient.new_Patient,
+			insurance: patient.insurance,
+			doctor_id: patient.doctor_id?._id ?? patient.doctor_id ?? '',
+		});
+	};
+
+	const handleUpdate = async (e) => {
+		e.preventDefault();
+		setIsUpdating(true);
+		try {
+			await updatePatient(editTarget._id, editForm);
+			await refreshPatients();
+			setEditTarget(null);
+		} finally {
+			setIsUpdating(false);
+		}
+	};
+
 	const handleDelete = async () => {
 		setIsDeleting(true);
 		try {
@@ -104,10 +138,27 @@ export default function AllPatients() {
 	// Doctors with fewer than 6 assigned patients are eligible for assignment
 	const doctorOptions = doctors
 		.filter((dr) => (dr.patients?.length ?? 0) < 6)
-		.map((dr) => ({ value: dr._id, label: dr.name }));
+		.map((dr) => ({ value: dr._id, label: dr.name, specialty: dr.specialty }));
+
+	// All doctors available for reassignment in the edit form
+	const allDoctorOptions = doctors.map((dr) => ({
+		value: dr._id,
+		label: dr.name,
+		specialty: dr.specialty,
+	}));
+
+	const renderDoctorOption = ({ option }) => (
+		<span>
+			{option.label}
+			{option.specialty && (
+				<span className="text-stone-400"> - {option.specialty}</span>
+			)}
+		</span>
+	);
 
 	return (
 		<div>
+			{/* Add Patient modal */}
 			<Modal
 				opened={opened}
 				onClose={() => setOpened(false)}
@@ -143,6 +194,7 @@ export default function AllPatients() {
 						data={doctorOptions}
 						value={form.doctor_id}
 						onChange={(val) => setForm({ ...form, doctor_id: val })}
+						renderOption={renderDoctorOption}
 						mb="sm"
 					/>
 					<Switch
@@ -168,6 +220,72 @@ export default function AllPatients() {
 						loading={isSubmitting}
 					>
 						Add Patient
+					</Button>
+				</form>
+			</Modal>
+
+			{/* Edit Patient modal */}
+			<Modal
+				opened={!!editTarget}
+				onClose={() => setEditTarget(null)}
+				title="Edit Patient"
+			>
+				<form onSubmit={handleUpdate}>
+					<TextInput
+						label="Name"
+						required
+						value={editForm.name}
+						onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+						mb="sm"
+					/>
+					<TextInput
+						label="Date of Birth"
+						type="date"
+						required
+						value={editForm.dob}
+						onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
+						mb="sm"
+					/>
+					<Select
+						label="Gender"
+						required
+						data={['male', 'female', 'non-binary']}
+						value={editForm.gender}
+						onChange={(val) => setEditForm({ ...editForm, gender: val })}
+						mb="sm"
+					/>
+					<Select
+						label="Doctor"
+						required
+						data={allDoctorOptions}
+						value={editForm.doctor_id}
+						onChange={(val) => setEditForm({ ...editForm, doctor_id: val })}
+						renderOption={renderDoctorOption}
+						mb="sm"
+					/>
+					<Switch
+						label="New Patient"
+						checked={editForm.new_Patient}
+						onChange={(e) =>
+							setEditForm({ ...editForm, new_Patient: e.currentTarget.checked })
+						}
+						mb="sm"
+					/>
+					<Switch
+						label="Has Insurance"
+						checked={editForm.insurance}
+						onChange={(e) =>
+							setEditForm({ ...editForm, insurance: e.currentTarget.checked })
+						}
+						mb="md"
+					/>
+					<Button
+						type="submit"
+						color="teal"
+						fullWidth
+						loading={isUpdating}
+					>
+						Save Changes
 					</Button>
 				</form>
 			</Modal>
@@ -230,13 +348,25 @@ export default function AllPatients() {
 								</Table.Td>
 								<Table.Td>{patient.doctor_id?.name ?? '—'}</Table.Td>
 								<Table.Td>
-									<ActionIcon
-										color="red"
-										variant="subtle"
-										onClick={() => setConfirmPatient(patient)}
+									<Group
+										gap="xs"
+										justify="flex-end"
 									>
-										✕
-									</ActionIcon>
+										<ActionIcon
+											color="black"
+											variant="subtle"
+											onClick={() => openEdit(patient)}
+										>
+											<FaRegEdit />
+										</ActionIcon>
+										<ActionIcon
+											color="red"
+											variant="subtle"
+											onClick={() => setConfirmPatient(patient)}
+										>
+											<TiDeleteOutline size={24} />
+										</ActionIcon>
+									</Group>
 								</Table.Td>
 							</Table.Tr>
 						))}

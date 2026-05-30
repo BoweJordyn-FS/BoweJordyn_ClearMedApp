@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getAllPatients } from '../api/patients';
 import { getAllDoctors } from '../api/doctors';
 import { Link } from 'react-router-dom';
+import { ScrollArea } from '@mantine/core';
 import { AvailabilityBadge, PatientTypeBadge } from './badges';
 
 export default function Panels() {
@@ -39,7 +40,7 @@ export default function Panels() {
 		.slice(0, 5);
 
 	return (
-		<div className="grid grid-cols-2 gap-4 mb-6">
+		<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
 			<section className="bg-white rounded-xl border border-stone-100">
 				<header className="flex items-center justify-between px-5 py-3.5 border-b border-stone-100">
 					<h4 className="text-[13px] font-medium">Doctors</h4>
@@ -49,18 +50,24 @@ export default function Panels() {
 						</button>
 					</Link>
 				</header>
-				<div className="text-left p-1">
-					{doctors.map((dr) => (
-						<div key={dr._id}>
-							<div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 cursor-pointer transition-colors">
-								<div className="flex-1 min-w-0">
-									<div className="text-[13px] font-medium truncate">{dr.name}</div>
-									<div className="text-[11px] text-stone-400">{dr.specialty}</div>
+				<div className="text-left p-1 scroll-auto">
+					<ScrollArea>
+						{doctors.map((dr) => (
+							<div key={dr._id}>
+								<div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 cursor-pointer transition-colors">
+									<div className="flex-1 min-w-0">
+										<div className="text-[13px] font-medium truncate">
+											{dr.name}
+										</div>
+										<div className="text-[11px] text-stone-400">
+											{dr.specialty}
+										</div>
+									</div>
+									<AvailabilityBadge available={dr.available} />
 								</div>
-								<AvailabilityBadge available={dr.available} />
 							</div>
-						</div>
-					))}
+						))}
+					</ScrollArea>
 				</div>
 			</section>
 
@@ -80,7 +87,9 @@ export default function Panels() {
 							className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 cursor-pointer transition-colors"
 						>
 							<div className="flex-1 min-w-0">
-								<div className="text-[13px] font-medium truncate">{patient.name}</div>
+								<div className="text-[13px] font-medium truncate">
+									{patient.name}
+								</div>
 								<div className="text-[11px] text-stone-400">
 									{patient.dob} | {patient.doctor_id?.name}
 								</div>

@@ -27,16 +27,16 @@ export default function Navigation({ children }) {
 
 	return (
 		<div className="flex h-screen">
-			<aside className="w-52 bg-white border-r border-stone-100 flex flex-col shrink-0">
-				<div className="px-5 py-4 border-b border-stone-100">
+			<aside className="w-auto bg-white border-r border-stone-100 flex flex-col shrink-0">
+				<div className="px-2 md:px-5 py-4 border-b border-stone-100">
 					<div className="flex items-center gap-2.5">
-						<div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white">
+						<div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white shrink-0">
 							<Hospital
 								size={24}
 								color="white"
 							/>
 						</div>
-						<div className="p-1">
+						<div className="p-1 hidden md:block">
 							<div className="text-lg font-medium leading-none">ClearMed</div>
 							<div className="text-sm text-stone-400 mt-0.5">Clinic Portal</div>
 						</div>
@@ -44,33 +44,35 @@ export default function Navigation({ children }) {
 				</div>
 
 				<nav className="py-3 text-left gap-2">
-					<div className="text-sm font-bold text-stone-300 uppercase tracking-widest mb-1 px-2.5 ">
+					<div className="text-sm font-bold text-stone-300 uppercase tracking-widest mb-1 px-2.5 hidden md:block">
 						Main
 					</div>
 					<ul className="py-1">
 						<li className="hover:bg-emerald-100 p-1">
 							<Link
 								to="/"
-								className="py-2 display flex flex-row items-center gap-1 mx-1"
+								className="py-2 flex flex-row items-center gap-1 mx-1 justify-center md:justify-start"
 							>
-								<MdOutlineDashboard />
-								Dashboard
+								<MdOutlineDashboard size={18} />
+								<span className="hidden md:inline">Dashboard</span>
 							</Link>
 						</li>
 						<li className="hover:bg-emerald-100 p-1">
 							<Link
 								to="/doctors"
-								className="py-2 display flex flex-row items-center gap-1 mx-1"
+								className="py-2 flex flex-row items-center gap-1 mx-1 justify-center md:justify-start"
 							>
-								<FaUserDoctor /> Doctors
+								<FaUserDoctor size={18} />
+								<span className="hidden md:inline">Doctors</span>
 							</Link>
 						</li>
 						<li className="hover:bg-emerald-100 p-1">
 							<Link
 								to="/patients"
-								className="py-2 display flex flex-row items-center gap-1 mx-1"
+								className="py-2 flex flex-row items-center gap-1 mx-1 justify-center md:justify-start"
 							>
-								<BsFileEarmarkPerson /> Patients
+								<BsFileEarmarkPerson size={18} />
+								<span className="hidden md:inline">Patients</span>
 							</Link>
 						</li>
 					</ul>
@@ -86,9 +88,9 @@ export default function Navigation({ children }) {
 						<form onSubmit={handleSubmit}>
 							<input
 								type="search"
-								placeholder="Search..."
+								placeholder="Search for doctors or patients..."
 								value={term}
-								className="border rounded-md w-md py-1 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mx-2"
+								className="border rounded-md w-32 sm:w-56 md:w-md py-1 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mx-2"
 								onChange={handleChange}
 							/>
 						</form>
