@@ -13,7 +13,7 @@ const routeNames = {
 	'/patients': 'Patients',
 };
 
-export default function Navigation({ children, onSubmit }) {
+export default function Navigation({ children }) {
 	const { pathname } = useLocation();
 	const pageName = routeNames[pathname] ?? pathname;
 	const [term, setTerm] = useState('');
@@ -21,6 +21,10 @@ export default function Navigation({ children, onSubmit }) {
 	const handleChange = (event) => {
 		setTerm(event.target.value);
 	};
+
+	// Prevent the browser from reloading the page when the user presses Enter
+	const handleSubmit = (e) => e.preventDefault();
+
 	return (
 		<div className="flex h-screen">
 			<aside className="w-52 bg-white border-r border-stone-100 flex flex-col shrink-0">
@@ -79,7 +83,7 @@ export default function Navigation({ children, onSubmit }) {
 						<span>{pageName}</span>
 					</div>
 					<div>
-						<form onSubmit={onSubmit}>
+						<form onSubmit={handleSubmit}>
 							<input
 								type="search"
 								placeholder="Search..."

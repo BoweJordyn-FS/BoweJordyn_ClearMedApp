@@ -7,10 +7,8 @@ import {
 	Select,
 	Switch,
 	ActionIcon,
-	Text,
 } from '@mantine/core';
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { getAllPatients, createPatient, deletePatient } from '../api/patients';
 import { getAllDoctors } from '../api/doctors';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
@@ -30,70 +28,91 @@ export default function AllPatients() {
 	const [opened, setOpened] = useState(false);
 	const [form, setForm] = useState(defaultForm);
 	const [confirmPatient, setConfirmPatient] = useState(null);
-	const queryClient = useQueryClient();
+
+	const [patients, setPatients] = useState([]);
+	const [doctors, setDoctors] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [isError, setIsError] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
+
 	const searchTerm = useSearch();
 
-	const {
-		data: patients,
-		isLoading,
-		isError,
-	} = useQuery({
-		queryKey: ['patients'],
-		queryFn: getAllPatients,
-	});
+	// Load patients and doctors when the component mounts
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				setIsLoading(true);
+				const [patientData, doctorData] = await Promise.all([
+					getAllPatients(),
+					getAllDoctors(),
+				]);
+				setPatients(patientData);
+				setDoctors(doctorData);
+			} catch {
+				setIsError(true);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+		fetchData();
+	}, []);
 
-	const { data: doctors } = useQuery({
-		queryKey: ['doctors'],
-		queryFn: getAllDoctors,
-	});
+	const refreshPatients = async () => {
+		const data = await getAllPatients();
+		setPatients(data);
+	};
 
-	const createMutation = useMutation({
-		mutationFn: createPatient,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['patients'] });
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		setIsSubmitting(true);
+		try {
+			await createPatient(form);
+			await refreshPatients();
 			setOpened(false);
 			setForm(defaultForm);
-		},
-	});
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
-	const deleteMutation = useMutation({
-		mutationFn: deletePatient,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['patients'] });
+	const handleDelete = async () => {
+		setIsDeleting(true);
+		try {
+			await deletePatient(confirmPatient._id);
+			await refreshPatients();
 			setConfirmPatient(null);
-		},
-	});
-
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		createMutation.mutate(form);
+		} finally {
+			setIsDeleting(false);
+		}
 	};
 
 	if (isLoading) return <div>Loading patients...</div>;
 	if (isError) return <div>Failed to load patients.</div>;
 
-	const allPatients = Array.isArray(patients) ? patients : [];
 	const lower = searchTerm.toLowerCase();
 	const rows = lower
-		? allPatients.filter(
+		? patients.filter(
 				(p) =>
 					p.name?.toLowerCase().includes(lower) ||
 					p.gender?.toLowerCase().includes(lower) ||
 					p.dob?.toLowerCase().includes(lower) ||
-					p.doctor_id?.name?.toLowerCase().includes(lower)
+					p.doctor_id?.name?.toLowerCase().includes(lower),
 			)
-		: allPatients;
+		: patients;
 
-	// max 6 patients per doctor
-	const doctorOptions = Array.isArray(doctors)
-		? doctors
-				.filter((dr) => (dr.patients?.length ?? 0) < 6)
-				.map((dr) => ({ value: dr._id, label: dr.name }))
-		: [];
+	// Doctors with fewer than 6 assigned patients are eligible for assignment
+	const doctorOptions = doctors
+		.filter((dr) => (dr.patients?.length ?? 0) < 6)
+		.map((dr) => ({ value: dr._id, label: dr.name }));
 
 	return (
 		<div>
-			<Modal opened={opened} onClose={() => setOpened(false)} title="Add Patient">
+			<Modal
+				opened={opened}
+				onClose={() => setOpened(false)}
+				title="Add Patient"
+			>
 				<form onSubmit={handleSubmit}>
 					<TextInput
 						label="Name"
@@ -129,16 +148,25 @@ export default function AllPatients() {
 					<Switch
 						label="New Patient"
 						checked={form.new_Patient}
-						onChange={(e) => setForm({ ...form, new_Patient: e.currentTarget.checked })}
+						onChange={(e) =>
+							setForm({ ...form, new_Patient: e.currentTarget.checked })
+						}
 						mb="sm"
 					/>
 					<Switch
 						label="Has Insurance"
 						checked={form.insurance}
-						onChange={(e) => setForm({ ...form, insurance: e.currentTarget.checked })}
+						onChange={(e) =>
+							setForm({ ...form, insurance: e.currentTarget.checked })
+						}
 						mb="md"
 					/>
-					<Button type="submit" color="teal" fullWidth loading={createMutation.isPending}>
+					<Button
+						type="submit"
+						color="teal"
+						fullWidth
+						loading={isSubmitting}
+					>
 						Add Patient
 					</Button>
 				</form>
@@ -148,8 +176,8 @@ export default function AllPatients() {
 				item={confirmPatient}
 				entityName="Patient"
 				onClose={() => setConfirmPatient(null)}
-				onConfirm={() => deleteMutation.mutate(confirmPatient._id)}
-				isPending={deleteMutation.isPending}
+				onConfirm={handleDelete}
+				isPending={isDeleting}
 			/>
 
 			<section
@@ -157,14 +185,26 @@ export default function AllPatients() {
 				className="border-stone-200 shadow-md shadow-stone-200/20 rounded-md p-3 mb-5 bg-white"
 			>
 				<header className="flex flex-row items-center justify-between mb-4 mx-2">
-					<h4>All Patients <span className="text-sm font-normal text-stone-400">({allPatients.length})</span></h4>
+					<h4>
+						All Patients{' '}
+						<span className="text-sm font-normal text-stone-400">
+							({patients.length})
+						</span>
+					</h4>
 					<Group>
-						<Button variant="filled" color="teal" onClick={() => setOpened(true)}>
+						<Button
+							variant="filled"
+							color="teal"
+							onClick={() => setOpened(true)}
+						>
 							+ Add Patient
 						</Button>
 					</Group>
 				</header>
-				<Table highlightOnHover verticalSpacing="md">
+				<Table
+					highlightOnHover
+					verticalSpacing="md"
+				>
 					<Table.Thead>
 						<Table.Tr>
 							<Table.Th>Name</Table.Th>

@@ -73,7 +73,6 @@ const createPatient = async (req, res) => {
 		const doctor = await Doctors.findById(newPatient.doctor_id);
 		doctor.patients.push(newPatient._id);
 		await doctor.save();
-		console.log('The patient created successfully:', newPatient);
 		res.status(201).json({ success: true, data: newPatient });
 	} catch (error) {
 		res.status(500).json({ success: false, message: Messages.SERVER_ERROR });

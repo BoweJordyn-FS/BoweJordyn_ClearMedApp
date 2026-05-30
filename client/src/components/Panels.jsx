@@ -1,34 +1,42 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { getAllPatients } from '../api/patients';
 import { getAllDoctors } from '../api/doctors';
 import { Link } from 'react-router-dom';
 import { AvailabilityBadge, PatientTypeBadge } from './badges';
 
 export default function Panels() {
-	const {
-		data: doctors,
-		isLoading,
-		isError,
-	} = useQuery({
-		queryKey: ['doctors'],
-		queryFn: getAllDoctors,
-	});
+	const [doctors, setDoctors] = useState([]);
+	const [patients, setPatients] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [isError, setIsError] = useState(false);
 
-	const { data: patients } = useQuery({
-		queryKey: ['patients'],
-		queryFn: getAllPatients,
-	});
+	// Load doctors and patients when the component mounts
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				setIsLoading(true);
+				const [doctorData, patientData] = await Promise.all([
+					getAllDoctors(),
+					getAllPatients(),
+				]);
+				setDoctors(doctorData);
+				setPatients(patientData);
+			} catch {
+				setIsError(true);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+		fetchData();
+	}, []);
 
 	if (isLoading) return <div>Loading...</div>;
 	if (isError) return <div>Failed to load data.</div>;
 
-	const doctorRows = Array.isArray(doctors) ? doctors : [];
-
-	const recentPatients = Array.isArray(patients)
-		? [...patients]
-				.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-				.slice(0, 5)
-		: [];
+	// Show the 5 most recently added patients
+	const recentPatients = [...patients]
+		.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+		.slice(0, 5);
 
 	return (
 		<div className="grid grid-cols-2 gap-4 mb-6">
@@ -42,7 +50,7 @@ export default function Panels() {
 					</Link>
 				</header>
 				<div className="text-left p-1">
-					{doctorRows.map((dr) => (
+					{doctors.map((dr) => (
 						<div key={dr._id}>
 							<div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 cursor-pointer transition-colors">
 								<div className="flex-1 min-w-0">

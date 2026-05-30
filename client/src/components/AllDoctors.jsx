@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
 	Group,
 	Button,
@@ -9,7 +9,6 @@ import {
 	Text,
 	ActionIcon,
 } from '@mantine/core';
-import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { getAllDoctors, createDoctor, deleteDoctor } from '../api/doctors';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { AvailabilityBadge, PatientTypeBadge } from './badges';
@@ -27,53 +26,72 @@ export default function AllDoctors() {
 	const [form, setForm] = useState(defaultForm);
 	const [confirmDoctor, setConfirmDoctor] = useState(null);
 	const [expandedId, setExpandedId] = useState(null);
-	const queryClient = useQueryClient();
+
+	const [doctors, setDoctors] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [isError, setIsError] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
+
 	const searchTerm = useSearch();
 
-	const {
-		data: doctors,
-		isLoading,
-		isError,
-	} = useQuery({
-		queryKey: ['doctors'],
-		queryFn: getAllDoctors,
-	});
+	// Load doctors when the component mounts
+	useEffect(() => {
+		const fetchDoctors = async () => {
+			try {
+				setIsLoading(true);
+				const data = await getAllDoctors();
+				setDoctors(data);
+			} catch {
+				setIsError(true);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+		fetchDoctors();
+	}, []);
 
-	const createMutation = useMutation({
-		mutationFn: createDoctor,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['doctors'] });
+	const refreshDoctors = async () => {
+		const data = await getAllDoctors();
+		setDoctors(data);
+	};
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		setIsSubmitting(true);
+		try {
+			await createDoctor(form);
+			await refreshDoctors();
 			setOpened(false);
 			setForm(defaultForm);
-		},
-	});
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
-	const deleteMutation = useMutation({
-		mutationFn: deleteDoctor,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['doctors'] });
+	const handleDelete = async () => {
+		setIsDeleting(true);
+		try {
+			await deleteDoctor(confirmDoctor._id);
+			await refreshDoctors();
 			setConfirmDoctor(null);
-		},
-	});
-
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		createMutation.mutate(form);
+		} finally {
+			setIsDeleting(false);
+		}
 	};
 
 	if (isLoading) return <div>Loading doctors...</div>;
 	if (isError) return <div>Failed to load doctors.</div>;
 
-	const allDoctors = Array.isArray(doctors) ? doctors : [];
 	const lower = searchTerm.toLowerCase();
 	const rows = lower
-		? allDoctors.filter(
+		? doctors.filter(
 				(dr) =>
 					dr.name?.toLowerCase().includes(lower) ||
 					dr.email?.toLowerCase().includes(lower) ||
 					dr.specialty?.toLowerCase().includes(lower)
 			)
-		: allDoctors;
+		: doctors;
 
 	return (
 		<>
@@ -107,7 +125,7 @@ export default function AllDoctors() {
 						onChange={(e) => setForm({ ...form, available: e.currentTarget.checked })}
 						mb="md"
 					/>
-					<Button type="submit" color="teal" fullWidth loading={createMutation.isPending}>
+					<Button type="submit" color="teal" fullWidth loading={isSubmitting}>
 						Add Doctor
 					</Button>
 				</form>
@@ -117,13 +135,18 @@ export default function AllDoctors() {
 				item={confirmDoctor}
 				entityName="Doctor"
 				onClose={() => setConfirmDoctor(null)}
-				onConfirm={() => deleteMutation.mutate(confirmDoctor._id)}
-				isPending={deleteMutation.isPending}
+				onConfirm={handleDelete}
+				isPending={isDeleting}
 			/>
 
 			<section className="border-stone-200 shadow-md shadow-stone-200/20 rounded-md p-3 mb-5 bg-white">
 				<header className="flex flex-row items-center justify-between mb-4 mx-2">
-					<h4>All Doctors</h4>
+					<h4>
+						All Doctors{' '}
+						<span className="text-sm font-normal text-stone-400">
+							({doctors.length})
+						</span>
+					</h4>
 					<Group>
 						<Button variant="filled" color="teal" onClick={() => setOpened(true)}>
 							+ Add Doctor
